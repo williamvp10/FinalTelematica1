@@ -39,7 +39,7 @@ public class Cliente {
         connect();
         // If everything has been initialized then we want to write some data
         // to the socket we have opened a connection to on port 25
-        addtask(new Task(this), 20000);
+        addtask(new Task(this), 2000);
         if (smtpSocket != null && os != null && is != null) {
             try {
                 //conect router 

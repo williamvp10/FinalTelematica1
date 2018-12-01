@@ -23,7 +23,7 @@ public class Task extends TimerTask {
     
     @Override
     public void run() {
-        System.out.println("hello");
+        System.out.println("enlacevivio");
         this.cliente.enviarEnlaceVivo();
         this.cliente.addtask(new Task(this.cliente), 7000);
     }

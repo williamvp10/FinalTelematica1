@@ -82,7 +82,22 @@ public class Host {
         }
         return var;
     }
+
+    public ArrayList<Conecciones> getConecciones() {
+        return conecciones;
+    }
+
+    public void addConecciones(Conecciones c) {
+        this.conecciones .add(c);
+    }
     
+    public boolean updateTabla(Host b){
+        boolean var=false;
+        for (int i = 0; i < conecciones.size(); i++) {
+            
+        }
+        return var;
+    }
     
 
 }

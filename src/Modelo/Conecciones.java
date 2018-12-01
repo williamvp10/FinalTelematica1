@@ -11,13 +11,15 @@ package Modelo;
  */
 public class Conecciones {
     private Host host;
-    private double timestamp;
+    private int timestamp;
+    private Host next;
 
-    public Conecciones(Host host, double timestamp) {
+    public Conecciones(Host host, int timestamp, Host next) {
         this.host = host;
         this.timestamp = timestamp;
+        this.next = next;
     }
-
+    
     public Host getHost() {
         return host;
     }
@@ -26,12 +28,21 @@ public class Conecciones {
         this.host = host;
     }
 
-    public double getTimestamp() {
+    public int getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(double timestamp) {
+    public void setTimestamp(int timestamp) {
         this.timestamp = timestamp;
     }
+
+    public Host getNext() {
+        return next;
+    }
+
+    public void setNext(Host next) {
+        this.next = next;
+    }
+
     
 }

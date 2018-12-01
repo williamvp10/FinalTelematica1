@@ -63,7 +63,6 @@ public final class Servidor {
     }
 
     public void agregarEnlace(Host h1, Host h2) {
-        System.out.println(h1.getDir_mac()+"-"+h2.getDir_mac());
         if (buscarHost(h1) != -1 && buscarHost(h2) != -1 && !h1.getDir_mac().equals(h2.getDir_mac())) {
             int timestamp = 1;
             if (enlaces.size() != 0) {
@@ -72,7 +71,7 @@ public final class Servidor {
             enlace e = new enlace(timestamp, h1, h2);
             if (!ExisteEnlace(e)) {
                 this.enlaces.add(e);
-                this.enlaces.get(this.enlaces.size()-1).Start(this);
+                this.enlaces.get(this.enlaces.size() - 1).Start(this);
             }
         }
     }
@@ -107,16 +106,14 @@ public final class Servidor {
                 res = "HOST conectado";
                 this.hosts.add(host);
                 for (int i = 0; i < host.getVecinos().size(); i++) {
-                    agregarEnlace(host,host.getVecinos().get(i));
+                    agregarEnlace(host, host.getVecinos().get(i));
                 }
                 nuevoHost(host);
-                
-            } else if (peticion[0].equals("vivo")) {
-                Router e = new Router();
-                e.setName(peticion[1]);
-                e.setDireccion(peticion[2]);
-                e.setMascara(peticion[3]);
-                res = sendHello(e.getName());
+
+            } else if (peticion[0].equals("enlacevivo")) {
+                Host e = new Host();
+                e.setDir_mac(peticion[1]);
+                sendEnlaceVivo(e);
             } else if (peticion[0].equals("updatetabla")) {
                 // UpdateRouter(peticion[1], peticion[2].split(","), peticion[3].split(","));
             }
@@ -127,6 +124,25 @@ public final class Servidor {
         animacion.revalidate();
         animacion.repaint();
         return res;
+    }
+
+    public void sendEnlaceVivo(Host h) {
+        int pos = buscarHost(h);
+        System.out.println("pos " + pos);
+        if (pos != -1) {
+            System.out.println("entro " + this.hosts.get(pos).getId());
+            h = this.hosts.get(pos);
+            ArrayList<Host> Vecinos = h.getVecinos();
+            for (int i = 0; i < Vecinos.size(); i++) {
+                animacion.addMensaje(h, this.hosts.get(pos).getId() + ":enlace vivo", Vecinos.get(i));
+            }
+            for (int i = 0; i < enlaces.size(); i++) {
+                if (this.enlaces.get(i).getHost1().getDir_mac().equals(h.getDir_mac())
+                        || this.enlaces.get(i).getHost2().getDir_mac().equals(h.getDir_mac())) {
+                    this.enlaces.get(i).validar(h);
+                }
+            }
+        }
     }
 
     public String sendHello(String name) {
@@ -190,6 +206,18 @@ public final class Servidor {
         animacion.repaint();
     }
 
+    public void enviarReps(HostAnimation a, HostAnimation b) {
+        int posb = buscarHost(b.getHost());
+        int posa = buscarHost(a.getHost());
+        System.out.println("pos " + posb);
+        if (posb != -1 && posa != -1) {
+            System.out.println("entro " + this.hosts.get(posb).getId());
+            animacion.addMensaje(this.hosts.get(posa), this.hosts.get(posa).getId() + ":resp enlace vivo", this.hosts.get(posb));
+        }
+        animacion.revalidate();
+        animacion.repaint();
+    }
+
 //    public void UpdateRouter(String name, String[] rout, String[] cost) {
 //        for (int i = 0; i < this.Routers.size(); i++) {
 //            Router r = this.Routers.get(i);
@@ -214,27 +242,28 @@ public final class Servidor {
 //        animacion.repaint();
 //    }
 //
-//    public void validarTabla(RouterAnimation a, RouterAnimation b) {
-//        if (a.getRouter().updateTabla(b.getRouter())) {
-//            for (int i = 0; i < a.getRouter().getConecciones().size(); i++) {
-//                if (!a.getRouter().getConecciones().get(i).equals(b.getRouter().getName())) {
-//                    ArrayList<RouterAnimation> r = this.animacion.getRouters();
-//                    for (int j = 0; j < r.size(); j++) {
-//                        if (r.get(j).getRouter().getName().equals(a.getRouter().getConecciones().get(i))) {
-//                            this.animacion.addMensaje(a.getRouter().getName(), a.getRouter().getName() + ":Link State Packets",
-//                                     r.get(j).getX(), r.get(j).getY());
-//                        }
-//                    }
-//
-//                }
-//            }
-//            animacion.updateRouter(a.getRouter());
-//            animacion.revalidate();
-//            animacion.repaint();
-//        } else {
-//            System.out.println(" no actualizo");
-//        }
-//    }
+    public void validarTabla(HostAnimation a, HostAnimation b) {
+        if (a.getHost().updateTabla(b.getHost())) {
+            for (int i = 0; i < a.getHost().getConecciones().size(); i++) {
+                if (!a.getHost().getConecciones().get(i).getHost().getDir_mac().equals(b.getHost().getDir_mac())) {
+                    ArrayList<HostAnimation> r = this.animacion.getHosts();
+                    for (int j = 0; j < r.size(); j++) {
+                        if (r.get(j).getHost().getDir_mac().equals(a.getHost().getConecciones().get(i).getHost().getDir_mac())) {
+                            this.animacion.addMensaje(a.getHost(), a.getHost().getDir_mac()+ ":update",
+                                     b.getHost());
+                        }
+                    }
+
+                }
+            }
+            //animacion.updateRouter(a.getRouter());
+            animacion.revalidate();
+            animacion.repaint();
+        } else {
+            System.out.println(" no actualizo");
+        }
+    }
+
     public ArrayList<Host> getHosts() {
         return hosts;
     }
@@ -244,10 +273,13 @@ public final class Servidor {
     }
 
     public int buscarHost(Host h) {
+        System.out.println("------------buscar-----------" + h.getDir_mac());
         int var = -1;
         for (int i = 0; i < this.hosts.size(); i++) {
-            if (this.hosts.get(i).getDir_mac().equals(h.getDir_mac())) {
-                var = 1;
+            System.out.println("" + this.hosts.get(i).getDir_mac().trim());
+            if (this.hosts.get(i).getDir_mac().trim().equals(h.getDir_mac().trim())) {
+                var = i;
+                break;
             }
         }
         return var;

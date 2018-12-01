@@ -16,15 +16,18 @@ import proyectotelematicai.Task1;
  */
 public class enlace {
     private int timestamp;
+    private Servidor s;
     private Host host1;
     private Host host2;
     private Timer timer;
-
+    private int validar;
     public enlace(int timestamp, Host host1, Host host2) {
         this.timer = new Timer();
         this.timestamp = timestamp;
         this.host1 = host1;
         this.host2 = host2;
+        this.validar=0;
+        this.s=null;
     }
 
     public int getTimestamp() {
@@ -64,6 +67,20 @@ public class enlace {
     }
 
     public void Start(Servidor r){
-        this.addtask(new Task1(r, this), 5000);
+        this.s=r;
+        this.addtask(new Task1(r, this), 10000);
     }
+    
+    public void validar(Host h){
+        if(h.getDir_mac().equals(host1.getDir_mac())||h.getDir_mac().equals(host2.getDir_mac())){
+            validar++;
+        }
+        if(validar>=2){
+            validar=0;
+            cancelTimer();
+            purgeTimer();
+            Start(s);
+        }
+    }
+    
 }
