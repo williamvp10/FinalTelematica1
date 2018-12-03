@@ -19,15 +19,17 @@ public class Host {
     private ArrayList<Conecciones> conecciones;
 
     public Host() {
-        id="";
-        dir_mac="";
+        id = "";
+        dir_mac = "";
         this.vecinos = new ArrayList<>();
+        this.conecciones = new ArrayList<>();
     }
 
     public Host(String id, String dir_mac) {
         this.id = id;
         this.dir_mac = dir_mac;
         this.vecinos = new ArrayList<>();
+        this.conecciones = new ArrayList<>();
     }
 
     public String getId() {
@@ -88,16 +90,70 @@ public class Host {
     }
 
     public void addConecciones(Conecciones c) {
-        this.conecciones .add(c);
-    }
-    
-    public boolean updateTabla(Host b){
         boolean var=false;
         for (int i = 0; i < conecciones.size(); i++) {
-            
+            if(c.getHost().getDir_mac().equals(this.conecciones.get(i).getHost().getDir_mac())){
+                var=true;
+                break;
+            }
+        }
+        if(!var){
+        this.conecciones.add(c);
+        }
+    }
+
+    public void setConecciones(ArrayList<Conecciones> c) {
+        this.conecciones = c;
+    }
+
+    public boolean updateTabla(Host b) {
+        boolean var = false;
+        for (int i = 0; i < conecciones.size(); i++) {
+
         }
         return var;
     }
+
+    public Conecciones buscarConeccion(Host a) {
+        for (int i = 0; i < this.conecciones.size(); i++) {
+            if (a.getDir_mac().equals(this.conecciones.get(i).getHost().getDir_mac())) {
+                return this.conecciones.get(i);
+            }
+        }
+        return null;
+    }
+
+    public boolean updateConeccion(Host a, Host next, int time) {
+        for (int i = 0; i < this.conecciones.size(); i++) {
+            if (a.getDir_mac().equals(this.conecciones.get(i).getHost().getDir_mac())) {
+                this.conecciones.get(i).setNext(next);
+                this.conecciones.get(i).setTimestamp(time);
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean deleteConeccion(Host a) {
+        for (int i = 0; i < this.conecciones.size(); i++) {
+            if (a.getDir_mac().equals(this.conecciones.get(i).getHost().getDir_mac())) {
+                this.conecciones.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
     
+
+    public ArrayList<String> valoresConecciones() {
+        ArrayList<String> val = new ArrayList<>();
+        for (int i = 0; i < this.conecciones.size(); i++) {
+            String a = "" + this.conecciones.get(i).getHost().getDir_mac();
+            a += " |  " + this.conecciones.get(i).getTimestamp();
+            a += "  | " + this.conecciones.get(i).getNext().getDir_mac();
+            val.add(a);
+        }
+        
+        return val;
+    }
 
 }

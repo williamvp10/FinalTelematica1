@@ -5,6 +5,7 @@
  */
 package proyectotelematicai;
 
+import Modelo.Conecciones;
 import Modelo.Host;
 import Modelo.HostAnimation;
 import Modelo.Router;
@@ -127,10 +128,9 @@ public final class Servidor {
     }
 
     public void sendEnlaceVivo(Host h) {
+        System.out.println("---------------enlacevivo");
         int pos = buscarHost(h);
-        System.out.println("pos " + pos);
         if (pos != -1) {
-            System.out.println("entro " + this.hosts.get(pos).getId());
             h = this.hosts.get(pos);
             ArrayList<Host> Vecinos = h.getVecinos();
             for (int i = 0; i < Vecinos.size(); i++) {
@@ -143,41 +143,6 @@ public final class Servidor {
                 }
             }
         }
-    }
-
-    public String sendHello(String name) {
-        String res = "inforouting";
-        for (int i = 0; i < this.hosts.size(); i++) {
-            if (this.hosts.get(i).getId().equals(name)) {
-                for (int j = 0; j < hosts.get(i).getVecinos().size(); j++) {
-                    // this.animacion.addMensaje(name, name + ":hello", this.animacion.getPosxRouter(Routers.get(i).getConecciones().get(j)), this.animacion.getPosyRouter(Routers.get(i).getConecciones().get(j)));
-//                    for (int k = 0; k < this.Routers.size(); k++) {
-//                        if (this.Routers.get(k).getName().equals(Routers.get(i).getCenecciones().get(j))) {
-//                            res += " " + this.Routers.get(k).getName() + " ";
-//                            for (int l = 0; l < this.Routers.get(k).getCenecciones().size(); l++) {
-//                                res += this.Routers.get(k).getCenecciones().get(l);
-//                                if (l < this.Routers.get(k).getCenecciones().size() - 1) {
-//                                    res += ",";
-//                                }
-//                            }
-//                            for (int l = 0; l < this.Routers.get(k).getCostos().size(); l++) {
-//                                res += this.Routers.get(k).getCostos().get(l);
-//                                if (l < this.Routers.get(k).getCostos().size() - 1) {
-//                                    res += ",";
-//                                }
-//                            }
-//                            break;
-//                        }
-//                    }
-                }
-                break;
-            }
-
-        }
-        System.out.println("res: " + res);
-        animacion.revalidate();
-        animacion.repaint();
-        return res;
     }
 
     public void nuevaAnimacion() {
@@ -209,59 +174,109 @@ public final class Servidor {
     public void enviarReps(HostAnimation a, HostAnimation b) {
         int posb = buscarHost(b.getHost());
         int posa = buscarHost(a.getHost());
-        System.out.println("pos " + posb);
         if (posb != -1 && posa != -1) {
-            System.out.println("entro " + this.hosts.get(posb).getId());
             animacion.addMensaje(this.hosts.get(posa), this.hosts.get(posa).getId() + ":resp enlace vivo", this.hosts.get(posb));
         }
         animacion.revalidate();
         animacion.repaint();
     }
 
-//    public void UpdateRouter(String name, String[] rout, String[] cost) {
-//        for (int i = 0; i < this.Routers.size(); i++) {
-//            Router r = this.Routers.get(i);
-//            if (r.getName().equals(name)) {
-//                ArrayList<ArrayList<String>> t = r.getTablaEnrrutamiento();
-//                for (int j = 0; j < rout.length; j++) {
-//                    if (j < t.get(0).size() - 1) {
-//                        t.get(0).set(i, rout[j]);
-//                        t.get(1).set(i, cost[j]);
-//                    } else {
-//                        t.get(0).add(rout[j]);
-//                        t.get(1).add(cost[j]);
-//                    }
-//                }
-//                this.Routers.get(i).setTablaEnrrutamiento(t);
-//                this.animacion.updateRouter(this.Routers.get(i));
-//                break;
-//            }
-//        }
-//
-//        animacion.revalidate();
-//        animacion.repaint();
-//    }
-//
-    public void validarTabla(HostAnimation a, HostAnimation b) {
-        if (a.getHost().updateTabla(b.getHost())) {
-            for (int i = 0; i < a.getHost().getConecciones().size(); i++) {
-                if (!a.getHost().getConecciones().get(i).getHost().getDir_mac().equals(b.getHost().getDir_mac())) {
-                    ArrayList<HostAnimation> r = this.animacion.getHosts();
-                    for (int j = 0; j < r.size(); j++) {
-                        if (r.get(j).getHost().getDir_mac().equals(a.getHost().getConecciones().get(i).getHost().getDir_mac())) {
-                            this.animacion.addMensaje(a.getHost(), a.getHost().getDir_mac()+ ":update",
-                                     b.getHost());
+    public void validarTablaInfoEnlace(HostAnimation a, HostAnimation b) {
+        boolean modificacion = false;
+        int posb = buscarHost(b.getHost());
+        int posa = buscarHost(a.getHost());
+        if (posb != -1 && posa != -1) {;
+            //enlace
+            for (int i = 0; i < this.enlaces.size(); i++) {
+                Conecciones c = null;
+                if (this.hosts.get(posa).getDir_mac().equals(this.enlaces.get(i).getHost1().getDir_mac())) {
+                    c = this.hosts.get(posa).buscarConeccion(this.enlaces.get(i).getHost2());
+                    System.out.println(c);
+                    if (c == null) {
+                        c = new Conecciones(this.enlaces.get(i).getHost2(), this.enlaces.get(i).getTimestamp(), this.enlaces.get(i).getHost2());
+                        this.hosts.get(posa).addConecciones(c);
+                        this.animacion.addConeccion(this.hosts.get(posa), c);
+                        modificacion = true;
+                    } else {
+                        if (c.getTimestamp() > this.enlaces.get(i).getTimestamp()) {
+                            this.hosts.get(posa).updateConeccion(this.enlaces.get(i).getHost2(), this.enlaces.get(i).getHost2(), this.enlaces.get(i).getTimestamp());
+                            this.animacion.updateConeccion(this.hosts.get(posa), this.enlaces.get(i).getHost2(), this.enlaces.get(i).getHost2(), this.enlaces.get(i).getTimestamp());
+                            modificacion = true;
                         }
                     }
-
+                } else if (this.hosts.get(posa).getDir_mac().equals(this.enlaces.get(i).getHost2().getDir_mac())) {
+                    c = this.hosts.get(posa).buscarConeccion(this.enlaces.get(i).getHost1());
+                    System.out.println(c);
+                    if (c == null) {
+                        c = new Conecciones(this.enlaces.get(i).getHost1(), this.enlaces.get(i).getTimestamp(), this.enlaces.get(i).getHost1());
+                        this.hosts.get(posa).addConecciones(c);
+                        this.animacion.addConeccion(this.hosts.get(posa), c);
+                        modificacion = true;
+                    } else {
+                        if (c.getTimestamp() > this.enlaces.get(i).getTimestamp()) {
+                            this.hosts.get(posa).updateConeccion(this.enlaces.get(i).getHost1(), this.enlaces.get(i).getHost1(), this.enlaces.get(i).getTimestamp());
+                            this.animacion.updateConeccion(this.hosts.get(posa), this.enlaces.get(i).getHost1(), this.enlaces.get(i).getHost1(), this.enlaces.get(i).getTimestamp());
+                            modificacion = true;
+                        }
+                    }
                 }
             }
-            //animacion.updateRouter(a.getRouter());
-            animacion.revalidate();
-            animacion.repaint();
+
+            //enviar mensaje de update a sus vecinos excepto del que llego la confirmacion de existecia
+            if (modificacion) {
+                animacion.addMensaje(this.hosts.get(posa), this.hosts.get(posa).getId() + ":info vecinos", this.hosts.get(posb));
+            }
         } else {
-            System.out.println(" no actualizo");
+            System.out.println(" error");
         }
+        animacion.revalidate();
+        animacion.repaint();
+    }
+
+    public void validarTablaInfoVecino(HostAnimation a, HostAnimation b) {
+        boolean modificacion = false;
+        int posb = buscarHost(b.getHost());
+        int posa = buscarHost(a.getHost());
+        ArrayList<Conecciones> conec = a.getHost().getConecciones();
+        if (posb != -1 && posa != -1) {
+            // nuevas rutas con respecto al otro host
+            ArrayList<Conecciones> conb = b.getHost().getConecciones();
+            for (int i = 0; i < conb.size(); i++) {
+                Conecciones c = null;
+                if (!this.hosts.get(posa).getDir_mac().equals(conb.get(i).getHost().getDir_mac())
+                        && !this.hosts.get(posa).getDir_mac().equals(conb.get(i).getNext().getDir_mac())) {
+                    c = this.hosts.get(posa).buscarConeccion(conb.get(i).getHost());
+                    if (c == null) {
+                        //valor del enlace + el valor de la ruta de b
+                        int time = valEnlace(this.hosts.get(posa), b.getHost()) + conb.get(i).getTimestamp();
+                        c = new Conecciones(conb.get(i).getHost(), time, b.getHost());
+                        this.hosts.get(posa).addConecciones(c);
+                        this.animacion.addConeccion(this.hosts.get(posa), c);
+                        modificacion = true;
+                    } else {
+                        //valor del enlace + el valor de la ruta de b
+                        int time = valEnlace(this.hosts.get(posa), b.getHost()) + conb.get(i).getTimestamp();
+                        if (time < c.getTimestamp()) {
+                            this.hosts.get(posa).updateConeccion(c.getHost(), b.getHost(), time);
+                            this.animacion.updateConeccion(this.hosts.get(posa), c.getHost(), b.getHost(), time);
+                            modificacion = true;
+                        }
+                    }
+                }
+            }
+            //enviar mensaje de update a sus vecinos excepto del que llego la confirmacion de existecia
+            if (modificacion) {
+                ArrayList<Host> Vecinos = this.hosts.get(posa).getVecinos();
+                for (int i = 0; i < Vecinos.size(); i++) {
+                    animacion.addMensaje(this.hosts.get(posa), this.hosts.get(posa).getId() + ":update", Vecinos.get(i));
+                }
+            }
+        } else {
+            System.out.println(" error");
+        }
+
+        animacion.revalidate();
+        animacion.repaint();
     }
 
     public ArrayList<Host> getHosts() {
@@ -273,7 +288,6 @@ public final class Servidor {
     }
 
     public int buscarHost(Host h) {
-        System.out.println("------------buscar-----------" + h.getDir_mac());
         int var = -1;
         for (int i = 0; i < this.hosts.size(); i++) {
             System.out.println("" + this.hosts.get(i).getDir_mac().trim());
@@ -283,6 +297,18 @@ public final class Servidor {
             }
         }
         return var;
+    }
+
+    public int valEnlace(Host a, Host b) {
+        int val = 0;
+        for (int i = 0; i < this.enlaces.size(); i++) {
+            if (this.enlaces.get(i).getHost1().getDir_mac().equals(a.getDir_mac()) && this.enlaces.get(i).getHost2().getDir_mac().equals(b.getDir_mac())
+                    || this.enlaces.get(i).getHost1().getDir_mac().equals(b.getDir_mac()) && this.enlaces.get(i).getHost2().getDir_mac().equals(a.getDir_mac())) {
+                val = this.enlaces.get(i).getTimestamp();
+                break;
+            }
+        }
+        return val;
     }
 
     /*main*/

@@ -5,6 +5,7 @@
  */
 package proyectotelematicai;
 
+import Modelo.Conecciones;
 import Modelo.Host;
 import Modelo.HostAnimation;
 import Modelo.Mensaje;
@@ -80,17 +81,17 @@ public class animation extends JPanel implements ActionListener {
         g.setColor(Color.RED);
         for (int i = 0; i < hosts.size(); i++) {
 
-            g.drawString("DES | Val | NEXT", hosts.get(i).getXt(), hosts.get(i).getYt());
-            ArrayList<String> valores = new ArrayList<>();
-            if (valores.size() != 0) {
+            g.drawString("        DESTINO       |VAL|          NEXT", hosts.get(i).getXt() + 10, hosts.get(i).getYt());
+            ArrayList<String> valores = hosts.get(i).getHost().valoresConecciones();
+            if (valores != null && valores.size() != 0) {
                 int valy = hosts.get(i).getYt();
                 for (int j = 0; j < valores.size(); j++) {
                     valy += 10;
-                    g.drawString(valores.get(j), hosts.get(i).getXt() - 10, valy);
+                    g.drawString(valores.get(j), hosts.get(i).getXt(), valy);
 
                 }
             } else {
-                g.drawString("sin datos", hosts.get(i).getXt() - 10, hosts.get(i).getYt() + 10);
+                g.drawString("sin datos", hosts.get(i).getXt(), hosts.get(i).getYt() + 10);
             }
         }
 
@@ -123,7 +124,26 @@ public class animation extends JPanel implements ActionListener {
                         } else if (msg.get(j).getMsg().split(":")[1].equals("resp enlace vivo")) {
                             for (int k = 0; k < hosts.size(); k++) {
                                 if (hosts.get(k).getX() == msg.get(j).getX() && hosts.get(k).getY() == msg.get(j).getY()) {
-                                    this.s.validarTabla(hosts.get(k), hosts.get(i));
+                                    this.s.validarTablaInfoEnlace(hosts.get(k), hosts.get(i));
+                                    this.s.validarTablaInfoVecino(hosts.get(k), hosts.get(i));
+                                    
+                                    break;
+                                }
+                            }
+                        } else if (msg.get(j).getMsg().split(":")[1].equals("info vecinos")) {
+                            for (int k = 0; k < hosts.size(); k++) {
+                                if (hosts.get(k).getX() == msg.get(j).getX() && hosts.get(k).getY() == msg.get(j).getY()) {
+                                    this.s.validarTablaInfoEnlace(hosts.get(k), hosts.get(i));
+                                    this.s.validarTablaInfoVecino(hosts.get(k), hosts.get(i));
+                                    break;
+                                }
+                            }
+                        }
+                        else if ( msg.get(j).getMsg().split(":")[1].equals("update")) {
+                            for (int k = 0; k < hosts.size(); k++) {
+                                if (hosts.get(k).getX() == msg.get(j).getX() && hosts.get(k).getY() == msg.get(j).getY()) {
+                                    this.s.validarTablaInfoEnlace(hosts.get(k), hosts.get(i));
+                                    this.s.validarTablaInfoVecino(hosts.get(k), hosts.get(i));
                                     break;
                                 }
                             }
@@ -136,13 +156,13 @@ public class animation extends JPanel implements ActionListener {
         //paint mensajes
         g.setColor(Color.BLUE);
         g.drawString("------------------------------------------------------------------------------------------------------------", 0, 550);
-        g.drawString("Mensajes", 30, 560);
+        g.drawString("Mensajes", 30, 570);
 
-        g.drawString("H:enlace vivo:  origen-destino-timestamp", 30, 575);
+        g.drawString("H:enlace vivo:  origen-destino-timestamp", 30, 585);
         g.setColor(Color.red);
-        g.drawString("H:respuesta enlace vivo:  origen-destino-timestamp", 30, 590);
+        g.drawString("H:respuesta enlace vivo:  origen-destino-timestamp", 30, 600);
         g.setColor(Color.BLACK);
-        g.drawString("H:actualizacion:  origen-destino-info routing", 30, 605);
+        g.drawString("H:actualizacion:  origen-destino-info routing", 30, 615);
         Toolkit.getDefaultToolkit().sync();
     }
 
@@ -158,6 +178,25 @@ public class animation extends JPanel implements ActionListener {
 
         }
 
+    }
+
+    public void addConeccion(Host a, Conecciones c) {
+        System.out.println(" entroo");
+        for (int i = 0; i < this.hosts.size(); i++) {
+            if (this.hosts.get(i).getHost().getDir_mac().equals(a.getDir_mac())) {
+                this.hosts.get(i).getHost().addConecciones(c);
+                break;
+            }
+        }
+    }
+
+    public void updateConeccion(Host origen, Host a, Host next, int time) {
+        for (int i = 0; i < this.hosts.size(); i++) {
+            if (this.hosts.get(i).getHost().getDir_mac().equals(origen.getDir_mac())) {
+                this.hosts.get(i).getHost().updateConeccion(a, next, time);
+                break;
+            }
+        }
     }
 
 //    public int getPosxRouter(String id) {
@@ -212,6 +251,4 @@ public class animation extends JPanel implements ActionListener {
         this.hosts = hosts;
     }
 
-    
-    
 }

@@ -24,19 +24,18 @@ public class HostAnimation {
     private Image r;
 
     public HostAnimation(Host h, int x, int y) {
-      
+
         this.mensajes = new ArrayList<Mensaje>();
         this.r = new ImageIcon("host.png").getImage();
         this.host = h;
         this.x = x;
         this.y = y;
+        this.xt = x + 90;
+        this.yt = y + 20;
 
-        if (x < 150) {
-            this.xt = x - 80;
-            this.yt = y + 20;
-        } else {
-            this.xt = x + 90;
-            this.yt = y + 20;
+        if (y > 300) {
+            this.yt = y + 100;
+            this.xt = x - 1;
         }
 
     }
@@ -88,7 +87,7 @@ public class HostAnimation {
     public void setYt(int yt) {
         this.yt = yt;
     }
-    
+
     public ArrayList<Mensaje> getMensajes() {
         return mensajes;
     }

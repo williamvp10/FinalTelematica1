@@ -68,7 +68,7 @@ public class enlace {
 
     public void Start(Servidor r){
         this.s=r;
-        this.addtask(new Task1(r, this), 10000);
+        this.addtask(new Task1(r, this), 60000);
     }
     
     public void validar(Host h){

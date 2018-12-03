@@ -25,7 +25,7 @@ public class Task extends TimerTask {
     public void run() {
         System.out.println("enlacevivio");
         this.cliente.enviarEnlaceVivo();
-        this.cliente.addtask(new Task(this.cliente), 7000);
+        this.cliente.addtask(new Task(this.cliente), 40000);
     }
 
 }
